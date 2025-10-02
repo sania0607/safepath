@@ -950,9 +950,11 @@ function updateCurrentLocation() {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    initMap();
-    updateCurrentLocation();
-    console.log('✅ SafePath MVP initialized with OpenStreetMap - No API key required!');
+    console.log('Loading external map script...');
 });
 </script>
+
+<!-- External Map JavaScript -->
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+
 {% endblock %}
