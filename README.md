@@ -1,4 +1,4 @@
-# 🛡️ SafePa### 👥 **Community Safety Platform**
+# 🛡️ SafePath
 - **Incident Reporting**: Users can report scams, harassment, theft, and other safety concerns
 - **Community Validation**: Helpful voting system for report verification
 - **Real-time Alerts**: Stay informed about safety issues in your area
