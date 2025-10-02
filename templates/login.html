@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Login - YourApp{% endblock %}
+
+{% block content %}
+<!-- ***** Header Area Start ***** -->
+<header class="header-area header-sticky">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <nav class="main-nav">
+                    <!-- ***** Logo Start ***** -->
+                    <a href="{{ url_for('index') }}" class="logo">
+                        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="YourApp" style="max-height: 40px;">
+                    </a>
+                    <!-- ***** Logo End ***** -->
+                    <!-- ***** Menu Start ***** -->
+                    <ul class="nav">
+                        <li><a href="{{ url_for('index') }}">Home</a></li>
+                        <li><a href="{{ url_for('register') }}">Register</a></li>
+                        <li><div class="gradient-button"><a href="{{ url_for('login') }}"><i class="fa fa-sign-in-alt"></i> Sign In</a></div></li> 
+                    </ul>        
+                    <a class='menu-trigger'>
+                        <span>Menu</span>
+                    </a>
+                    <!-- ***** Menu End ***** -->
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+<!-- ***** Header Area End ***** -->
+
+<!-- ***** Login Section Start ***** -->
+<div class="login-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <div class="login-form-container">
+                    <div class="section-heading text-center">
+                        <h4>Welcome <em>Back</em></h4>
+                        <img src="{{ url_for('static', filename='images/heading-line-dec.png') }}" alt="">
+                        <p>Sign in to your account to access your dashboard and manage your projects.</p>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="login-form">
+                                <form action="{{ url_for('login') }}" method="POST">
+                                    <div class="form-group">
+                                        <label for="username"><i class="fa fa-user"></i> Username</label>
+                                        <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="password"><i class="fa fa-lock"></i> Password</label>
+                                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                                    </div>
+                                    
+                                    <div class="form-group remember-forgot">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="remember">
+                                            <label class="form-check-label" for="remember">Remember me</label>
+                                        </div>
+                                        <a href="#" class="forgot-password">Forgot Password?</a>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <button type="submit" class="gradient-button full-width">
+                                            <i class="fa fa-sign-in-alt"></i> Sign In
+                                        </button>
+                                    </div>
+                                </form>
+                                
+                                <div class="login-footer">
+                                    <p>Don't have an account? <a href="{{ url_for('register') }}" class="register-link">Create one here</a></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+
+                                    
+
+<!-- ***** Footer Start ***** -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <p>Copyright © 2025 YourApp Co., Ltd. All Rights Reserved.</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<style>
+.login-section {
+    padding: 120px 0 80px 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+.login-form-container {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 60px;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.login-form .form-group {
+    margin-bottom: 25px;
+}
+
+.login-form label {
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.login-form .form-control {
+    padding: 15px 20px;
+    border: 2px solid #e1e1e1;
+    border-radius: 10px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.login-form .form-control:focus {
+    border-color: #667eea;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.remember-forgot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.forgot-password {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.forgot-password:hover {
+    text-decoration: underline;
+}
+
+.gradient-button.full-width {
+    width: 100%;
+    text-align: center;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e1e1e1;
+}
+
+.register-link {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.register-link:hover {
+    text-decoration: underline;
+}
+
+.login-info {
+    padding-left: 30px;
+}
+
+.info-box, .features-box {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    border-left: 4px solid #667eea;
+}
+
+.info-box h5, .features-box h5 {
+    color: #333;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.demo-account {
+    margin-bottom: 20px;
+}
+
+.demo-account p {
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.demo-account code {
+    background: #e9ecef;
+    padding: 3px 8px;
+    border-radius: 4px;
+    color: #495057;
+    font-weight: 600;
+}
+
+.feature-list {
+    list-style: none;
+    padding: 0;
+}
+
+.feature-list li {
+    padding: 8px 0;
+    color: #555;
+}
+
+.feature-list li i {
+    color: #28a745;
+    margin-right: 10px;
+}
+
+@media (max-width: 768px) {
+    .login-form-container {
+        padding: 40px 20px;
+    }
+    
+    .login-info {
+        padding-left: 0;
+        margin-top: 30px;
+    }
+}
+</style>
+{% endblock %}

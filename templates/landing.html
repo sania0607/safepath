@@ -1,0 +1,365 @@
+{% extends "base.html" %}
+
+{% block title %}SafePath{% endblock %}
+
+{% block content %}
+<!-- ***** Header Area Start ***** -->
+<header class="header-area header-sticky wow slideInDown" data-wow-duration="0.75s" data-wow-delay="0s">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <nav class="main-nav">
+                    <!-- ***** Logo Start ***** -->
+                    <a href="{{ url_for('index') }}" class="logo" style="display: flex; align-items: center;">
+                        <span style="font-size: 32px; font-weight: 700; color: #667eea;">🛡️ SafePath</span>
+                    </a>
+                    <!-- ***** Logo End ***** -->
+                    <!-- ***** Menu Start ***** -->
+                    <ul class="nav">
+                        <li class="scroll-to-section"><a href="#top" class="active">Home</a></li>
+                        <li class="scroll-to-section"><a href="#services">Features</a></li>
+                        <li class="scroll-to-section"><a href="#about">About</a></li>
+                        <li class="scroll-to-section"><a href="#contact">Contact</a></li>
+                        <li><div class="gradient-button"><a id="modal_trigger" href="#modal"><i class="fa fa-sign-in-alt"></i> Sign In Now</a></div></li> 
+                    </ul>        
+                    <a class='menu-trigger'>
+                        <span>Menu</span>
+                    </a>
+                    <!-- ***** Menu End ***** -->
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+<!-- ***** Header Area End ***** -->
+
+<!-- ***** Login Modal Start ***** -->
+<div id="modal" class="popupContainer" style="display:none;">
+    <div class="popupHeader">
+        <span class="header_title">Login</span>
+        <span class="modal_close"><i class="fa fa-times"></i></span>
+    </div>
+    <section class="popupBody">
+        <!-- Login Form -->
+        <div class="user_login">
+            <form action="{{ url_for('login') }}" method="POST">
+                <label>Username</label>
+                <input type="text" name="username" required>
+                <br>
+                <label>Password</label>
+                <input type="password" name="password" required>
+                <br>
+                <div class="action_btns">
+                    <div class="one_half"><a href="#" class="btn back_btn"><i class="fa fa-angle-double-left"></i> Back</a></div>
+                    <div class="one_half last"><button type="submit" class="btn btn_red">Login</button></div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Register Form -->
+        <div class="user_register" style="display:none;">
+            <form action="{{ url_for('register') }}" method="POST">
+                <label>Full Name</label>
+                <input type="text" name="username" required>
+                <br>
+                <label>Email Address</label>
+                <input type="email" name="email">
+                <br>
+                <label>Password</label>
+                <input type="password" name="password" required>
+                <br>
+                <div class="action_btns">
+                    <div class="one_half"><a href="#" class="btn back_btn"><i class="fa fa-angle-double-left"></i> Back</a></div>
+                    <div class="one_half last"><button type="submit" class="btn btn_red">Register</button></div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Demo Credentials -->
+        <div class="demo_credentials">
+            <hr>
+            <p><strong>Demo Credentials:</strong></p>
+            <p>Username: <code>admin</code> | Password: <code>password123</code></p>
+            <p>Username: <code>user</code> | Password: <code>mypassword</code></p>
+            <p><a href="#" class="switch_register">Don't have an account? Register here</a></p>
+        </div>
+    </section>
+</div>
+<!-- ***** Login Modal End ***** -->
+
+<!-- ***** Main Banner Area Start ***** -->
+<div class="main-banner wow fadeIn" id="top" data-wow-duration="1s" data-wow-delay="0.5s">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="row">
+                    <div class="col-lg-6 align-self-center">
+                        <div class="left-content show-up header-text wow fadeInLeft" data-wow-duration="1s" data-wow-delay="1s">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <h2>Safer Routes, Safer Journeys</h2>
+                                    <p><p>
+SafePath is the smarter way to navigate — helping you choose routes that aren’t just fast, but safe. 
+With real-time community reports, lighting insights, and local safety data, we make sure you reach 
+your destination securely and confidently.
+</p>
+</p>
+                                </div>
+                                <div class="col-lg-12">
+                                    <div class="white-button first-button scroll-to-section">
+                                        <a href="{{ url_for('register') }}">Start Safe Navigation!</a>
+                                    </div>
+                                    <div class="white-button scroll-to-section">
+                                        <a href="#services">Learn More</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="right-image wow fadeInRight" data-wow-duration="1s" data-wow-delay="0.5s">
+                            <img src="{{ url_for('static', filename='images/slider-dec.png') }}" alt="">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ***** Main Banner Area End ***** -->
+
+<!-- ***** Services Area Start ***** -->
+<div id="services" class="services section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <div class="section-heading wow fadeInDown" data-wow-duration="1s" data-wow-delay="0.5s">
+                    <h4>Safety-First <em>Navigation &amp; Community</em> Insights</h4>
+                    <img src="{{ url_for('static', filename='images/heading-line-dec.png') }}" alt="">
+                    <p>SafePath bridges the gap between speed and safety, offering urban travelers the tools they need to navigate confidently through real-time community reports and local safety insights.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="service-item first-service">
+                    <div class="icon"></div>
+                    <h4>Real-Time Community Reports</h4>
+                    <p>Get live updates on unsafe spots, scams, or incidents reported by fellow travelers in your area to make informed route decisions.</p>
+                    <div class="text-button">
+                        <a href="#">Read More <i class="fa fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3">
+                <div class="service-item second-service">
+                    <div class="icon"></div>
+                    <h4>Lighting &amp; Crowd Insights</h4>
+                    <p>Discover whether your route has poor lighting, isolated streets, or sufficient public presence before you travel through the area.</p>
+                    <div class="text-button">
+                        <a href="#">Read More <i class="fa fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3">
+                <div class="service-item third-service">
+                    <div class="icon"></div>
+                    <h4>Safer Route Discovery</h4>
+                    <p>Find alternative routes that balance speed with safety, avoiding risky zones like scams, poorly lit roads, and isolated areas.</p>
+                    <div class="text-button">
+                        <a href="#">Read More <i class="fa fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3">
+                <div class="service-item fourth-service">
+                    <div class="icon"></div>
+                    <h4>Community Safety Reporting</h4>
+                    <p>Contribute to community safety by reporting unsafe experiences or areas to help fellow travelers make better route choices.</p>
+                    <div class="text-button">
+                        <a href="#">Read More <i class="fa fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ***** Services Area End ***** -->
+
+<!-- ***** About Area Start ***** -->
+<div id="about" class="about-us section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 align-self-center">
+                <div class="section-heading">
+                    <h4>About <em>SafePath</em> &amp; Our Mission</h4>
+                    <img src="{{ url_for('static', filename='images/heading-line-dec.png') }}" alt="">
+                    <p>We are a team passionate about urban safety, creating navigation solutions that prioritize traveler security. SafePath bridges the gap between speed and safety, helping you navigate confidently through the modern urban landscape.</p>
+                </div>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="box-item">
+                            <h4><a href="#">Real-Time Safety Data</a></h4>
+                            <p>Live community reports and safety insights to help you make informed route decisions in real-time.</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="box-item">
+                            <h4><a href="#">Community-Driven Protection</a></h4>
+                            <p>A network of travelers sharing safety information to protect each other from unsafe areas and incidents.</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="box-item">
+                            <h4><a href="#">Smart Route Optimization</a></h4>
+                            <p>Advanced algorithms that balance speed with safety, finding routes that get you there securely.</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="box-item">
+                            <h4><a href="#">Local Area Insights</a></h4>
+                            <p>Detailed information about lighting, crowd levels, and safety conditions for every route segment.</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <p>Ready to travel safer? Join thousands of urban travelers who trust SafePath for secure navigation.</p>
+                        <div class="gradient-button">
+                            <a href="{{ url_for('register') }}">Start Safe Navigation</a>
+                        </div>
+                        <span>*Free Community Safety Reports</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="right-image">
+                    <img src="{{ url_for('static', filename='images/about-right-dec.png') }}" alt="">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ***** About Area End ***** -->
+
+<!-- ***** Contact Area Start ***** -->
+<div id="contact" class="contact-us section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 offset-lg-3">
+                <div class="section-heading wow fadeIn" data-wow-duration="1s" data-wow-delay="0.5s">
+                    <h4>Contact SafePath <em>Here</em></h4>
+                    <img src="{{ url_for('static', filename='images/heading-line-dec.png') }}" alt="">
+                    <p>Ready to navigate safer? Contact our team to learn more about SafePath's safety-first navigation features.</p>
+                </div>
+            </div>
+            <div class="col-lg-12 wow fadeInUp" data-wow-duration="0.5s" data-wow-delay="0.25s">
+                <form id="contact" action="" method="post">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="contact-dec">
+                                <img src="{{ url_for('static', filename='images/contact-dec.png') }}" alt="">
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div id="map">
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d56048.52670734663!2d77.3290!3d28.5355!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390ce5a43173357b%3A0x37ffce30c87cc03f!2sGreater%20Noida%2C%20Uttar%20Pradesh!5e0!3m2!1sen!2sin!4v1696234567890!5m2!1sen!2sin" width="100%" height="636px" frameborder="0" style="border:0" allowfullscreen=""></iframe>
+                            </div>
+                        </div>
+                        <div class="col-lg-7">
+                            <div class="fill-form">
+                                <div class="row">
+                                    <div class="col-lg-4">
+                                        <div class="info-post">
+                                            <div class="icon">
+                                                <img src="{{ url_for('static', filename='images/phone-icon.png') }}" alt="">
+                                                <a href="#">+91-9876-543-210</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <div class="info-post">
+                                            <div class="icon">
+                                                <img src="{{ url_for('static', filename='images/email-icon.png') }}" alt="">
+                                                <a href="#">contact@safepath.app</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <div class="info-post">
+                                            <div class="icon">
+                                                <img src="{{ url_for('static', filename='images/location-icon.png') }}" alt="">
+                                                <a href="#">Greater Noida, Uttar Pradesh 201310</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <fieldset>
+                                            <input type="name" name="name" id="name" placeholder="Name" autocomplete="on" required>
+                                        </fieldset>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <fieldset>
+                                            <input type="surname" name="surname" id="surname" placeholder="Surname" autocomplete="on" required>
+                                        </fieldset>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <fieldset>
+                                            <input type="text" name="email" id="email" pattern="[^ @]*@[^ @]*" placeholder="Your Email" required="">
+                                        </fieldset>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <fieldset>
+                                            <input type="subject" name="subject" id="subject" placeholder="Subject" autocomplete="on">
+                                        </fieldset>
+                                    </div>
+                                    <div class="col-lg-12">
+                                        <fieldset>
+                                            <textarea name="message" type="text" class="form-control" id="message" placeholder="Message" required=""></textarea>
+                                        </fieldset>
+                                    </div>
+                                    <div class="col-lg-12">
+                                        <fieldset>
+                                            <button type="submit" id="form-submit" class="main-button">Send Message Now</button>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ***** Contact Area End ***** -->
+
+<!-- ***** Footer Start ***** -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <p>Copyright © 2025 SafePath Co., Ltd. All Rights Reserved.</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+// Modal functionality
+$(document).ready(function() {
+    // Switch between login and register forms
+    $('.switch_register').click(function(e) {
+        e.preventDefault();
+        $('.user_login').hide();
+        $('.user_register').show();
+    });
+    
+    $('.back_btn').click(function(e) {
+        e.preventDefault();
+        $('.user_register').hide();
+        $('.user_login').show();
+    });
+});
+</script>
+{% endblock %}

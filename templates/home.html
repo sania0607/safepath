@@ -1,0 +1,958 @@
+{% extends "base.html" %}
+
+{% block title %}SafePath MVP - Dashboard{% endblock %}
+
+{% block content %}
+<!-- ***** Header Area Start ***** -->
+<header class="header-area header-sticky">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <nav class="main-nav">
+                    <!-- ***** Logo Start ***** -->
+                    <a href="{{ url_for('home') }}" class="logo" style="display: flex; align-items: center;">
+                        <span style="font-size: 32px; font-weight: 700; color: #667eea;">🛡️ SafePath</span>
+                    </a>
+                    <!-- ***** Logo End ***** -->
+                    <!-- ***** Menu Start ***** -->
+                    <ul class="nav">
+                        <li><a href="{{ url_for('home') }}" class="active">Map</a></li>
+                        <li><a href="{{ url_for('community_reports') }}">Community Reports</a></li>
+                        <li><a href="{{ url_for('submit_report') }}">Submit Report</a></li>
+                        <li><a href="#about">About</a></li>
+                        <li class="user-menu">
+                            <span class="user-welcome">{{ username }}</span>
+                            <div class="gradient-button"><a href="{{ url_for('logout') }}"><i class="fa fa-sign-out-alt"></i> Logout</a></div>
+                        </li> 
+                    </ul>        
+                    <a class='menu-trigger'>
+                        <span>Menu</span>
+                    </a>
+                    <!-- ***** Menu End ***** -->
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+<!-- ***** Header Area End ***** -->
+
+<!-- ***** SafePath MVP Dashboard Start ***** -->
+<div class="mvp-dashboard">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Route Planning Panel -->
+            <div class="col-lg-4 col-md-5 sidebar-panel">
+                <div class="route-planner">
+                    <div class="panel-header">
+                        <h3>🛡️ SafePath Navigation</h3>
+                        <p>Find the safest route to your destination</p>
+                    </div>
+                    
+                    <!-- Route Input Form -->
+                    <div class="route-form">
+                        <div class="input-group">
+                            <label>📍 From</label>
+                            <input type="text" id="origin" placeholder="Your current location" value="Greater Noida Sector 1">
+                        </div>
+                        <div class="input-group">
+                            <label>🎯 To</label>
+                            <input type="text" id="destination" placeholder="Enter destination">
+                        </div>
+                        <button class="btn-find-route" onclick="findSafeRoute()">
+                            <i class="fa fa-route"></i> Find Safe Route
+                        </button>
+                    </div>
+
+                    <!-- Route Options -->
+                    <div class="route-options" id="routeOptions" style="display: none;">
+                        <h4>Route Options</h4>
+                        <div class="route-option active" onclick="selectRoute('safe')">
+                            <div class="route-icon safe">🛡️</div>
+                            <div class="route-details">
+                                <h5>Safe Route</h5>
+                                <span class="route-time">18 min</span>
+                                <span class="route-safety">95% Safety Score</span>
+                            </div>
+                        </div>
+                        <div class="route-option" onclick="selectRoute('fast')">
+                            <div class="route-icon fast">⚡</div>
+                            <div class="route-details">
+                                <h5>Fastest Route</h5>
+                                <span class="route-time">14 min</span>
+                                <span class="route-safety">72% Safety Score</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Safety Insights -->
+                    <div class="safety-insights" id="safetyInsights" style="display: none;">
+                        <h4>Safety Insights</h4>
+                        <div class="insight-item">
+                            <span class="insight-icon">💡</span>
+                            <span>Well-lit main roads selected</span>
+                        </div>
+                        <div class="insight-item">
+                            <span class="insight-icon">👥</span>
+                            <span>Higher foot traffic areas preferred</span>
+                        </div>
+                        <div class="insight-item">
+                            <span class="insight-icon">⚠️</span>
+                            <span>2 reported issues avoided</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Report Panel -->
+                <div class="quick-report">
+                    <div class="panel-header">
+                        <h3>⚠️ Quick Report</h3>
+                        <p>Help the community stay safe</p>
+                    </div>
+                    
+                    <div class="report-buttons">
+                        <button class="report-btn" onclick="reportIssue('lighting')" data-issue="lighting">
+                            <div class="report-icon">🔦</div>
+                            <span>Poor Lighting</span>
+                        </button>
+                        <button class="report-btn" onclick="reportIssue('harassment')" data-issue="harassment">
+                            <div class="report-icon">⚠️</div>
+                            <span>Harassment</span>
+                        </button>
+                        <button class="report-btn" onclick="reportIssue('scam')" data-issue="scam">
+                            <div class="report-icon">🚨</div>
+                            <span>Scam/Suspicious</span>
+                        </button>
+                        <button class="report-btn" onclick="reportIssue('infrastructure')" data-issue="infrastructure">
+                            <div class="report-icon">🚧</div>
+                            <span>Infrastructure</span>
+                        </button>
+                        <button class="report-btn" onclick="reportIssue('other')" data-issue="other">
+                            <div class="report-icon">❗</div>
+                            <span>Other Issue</span>
+                        </button>
+                    </div>
+                    
+                    <div class="current-location">
+                        <small>📍 Current: <span id="currentLocation">Greater Noida, Sec 16</span></small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Container -->
+            <div class="col-lg-8 col-md-7 map-container">
+                <div class="map-wrapper">
+                    <!-- Interactive Google Map -->
+                    <div id="map" class="main-map"></div>
+                    
+                    <!-- Map Controls -->
+                    <div class="map-controls">
+                        <button class="control-btn" onclick="centerMap()" title="Center Map">
+                            <i class="fa fa-crosshairs"></i>
+                        </button>
+                        <button class="control-btn" onclick="toggleLayer('reports')" title="Toggle Reports">
+                            <i class="fa fa-exclamation-triangle"></i>
+                        </button>
+                        <button class="control-btn" onclick="toggleLayer('safety')" title="Safety Layer">
+                            <i class="fa fa-shield-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ***** SafePath MVP Dashboard End ***** -->
+
+<!-- Report Success Modal -->
+<div id="reportModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h4>✅ Report Submitted</h4>
+        <p>Thank you for helping make Greater Noida safer!</p>
+        <p>Your report has been logged and will help other users.</p>
+        <button onclick="closeModal()" class="btn-close">Close</button>
+    </div>
+</div>
+
+<!-- Leaflet.js - Open Source Map (No API Key Required) -->
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Leaflet Routing Machine CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    
+    <!-- Bootstrap CSS -->
+    <!-- SafePath Routing Algorithm -->
+    <script src="{{ url_for('static', filename='js/routing-algorithm.js') }}"></script>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Leaflet Routing Machine JS -->
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    
+    <script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+
+<style>
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-welcome {
+    color: #fff;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+/* MVP Dashboard Layout */
+.mvp-dashboard {
+    padding-top: 100px;
+    min-height: 100vh;
+    background: #f8f9fa;
+}
+
+.sidebar-panel {
+    background: white;
+    min-height: calc(100vh - 100px);
+    padding: 0;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+}
+
+.map-container {
+    padding: 0;
+}
+
+/* Route Planner */
+.route-planner {
+    padding: 25px;
+    border-bottom: 2px solid #f1f3f4;
+}
+
+.panel-header h3 {
+    color: #333;
+    font-size: 1.3rem;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.panel-header p {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+
+.route-form .input-group {
+    margin-bottom: 15px;
+}
+
+.route-form label {
+    display: block;
+    color: #333;
+    font-weight: 500;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.route-form input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: border-color 0.3s;
+}
+
+.route-form input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.btn-find-route {
+    width: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+.btn-find-route:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Route Options */
+.route-options {
+    margin-top: 20px;
+}
+
+.route-options h4 {
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.route-option {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border: 2px solid #e1e5e9;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.route-option:hover {
+    border-color: #667eea;
+    background: #f8f9ff;
+}
+
+.route-option.active {
+    border-color: #667eea;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+}
+
+.route-icon {
+    font-size: 1.5rem;
+    margin-right: 15px;
+    width: 40px;
+    text-align: center;
+}
+
+.route-details h5 {
+    margin: 0 0 5px 0;
+    color: #333;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.route-time {
+    color: #667eea;
+    font-weight: 600;
+    margin-right: 10px;
+}
+
+.route-safety {
+    color: #00b894;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Safety Insights */
+.safety-insights {
+    margin-top: 20px;
+}
+
+.safety-insights h4 {
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.insight-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.insight-icon {
+    margin-right: 10px;
+    font-size: 1.1rem;
+}
+
+/* Quick Report Panel */
+.quick-report {
+    padding: 25px;
+}
+
+.report-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.report-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 10px;
+    border: 2px solid #e1e5e9;
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.report-btn:hover {
+    border-color: #fd79a8;
+    background: #fff5f8;
+    transform: translateY(-2px);
+}
+
+.report-btn.active {
+    border-color: #fd79a8;
+    background: linear-gradient(135deg, rgba(253, 121, 168, 0.1) 0%, rgba(253, 121, 168, 0.2) 100%);
+}
+
+.report-icon {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+}
+
+.report-btn span {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.current-location {
+    text-align: center;
+    color: #666;
+    font-size: 0.85rem;
+}
+
+/* Map Container */
+.map-wrapper {
+    position: relative;
+    height: calc(100vh - 100px);
+}
+
+.main-map {
+    width: 100%;
+    height: 100%;
+    background: #e8f4f8;
+}
+
+/* Map Controls */
+.map-controls {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.control-btn {
+    width: 45px;
+    height: 45px;
+    background: white;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    transition: all 0.3s;
+}
+
+.control-btn:hover {
+    background: #667eea;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 400px;
+    margin: 20px;
+}
+
+.modal-content h4 {
+    color: #00b894;
+    margin-bottom: 15px;
+}
+
+.btn-close {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 15px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar-panel {
+        position: fixed;
+        top: 100px;
+        left: -100%;
+        width: 90%;
+        height: calc(100vh - 100px);
+        z-index: 999;
+        transition: left 0.3s;
+        overflow-y: auto;
+    }
+    
+    .sidebar-panel.open {
+        left: 0;
+    }
+    
+    .map-container {
+        width: 100%;
+    }
+    
+    .report-buttons {
+        grid-template-columns: 1fr;
+    }
+    
+    .user-menu {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+</style>
+
+<script>
+// Global variables
+let map;
+let routingControl;
+let safetyMarkers = [];
+let currentRoutePolylines = [];
+
+// Custom marker icons
+const markerIcons = {
+    lighting: L.divIcon({
+        className: 'custom-marker',
+        html: '<div style="background: #FFA500; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">🔦</div>',
+        iconSize: [30, 30]
+    }),
+    harassment: L.divIcon({
+        className: 'custom-marker',
+        html: '<div style="background: #FF4444; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">⚠️</div>',
+        iconSize: [30, 30]
+    }),
+    scam: L.divIcon({
+        className: 'custom-marker',
+        html: '<div style="background: #FF6B6B; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">🚨</div>',
+        iconSize: [30, 30]
+    }),
+    infrastructure: L.divIcon({
+        className: 'custom-marker',
+        html: '<div style="background: #FD79A8; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">🚧</div>',
+        iconSize: [30, 30]
+    }),
+    other: L.divIcon({
+        className: 'custom-marker',
+        html: '<div style="background: #667EEA; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">❗</div>',
+        iconSize: [30, 30]
+    })
+};
+
+// Initialize Map with Leaflet.js (OpenStreetMap - No API Key Required!)
+function initMap() {
+    // Greater Noida coordinates
+    const greaterNoida = [28.5355, 77.3910];
+    
+    // Create map centered on Greater Noida
+    map = L.map('map', {
+        center: greaterNoida,
+        zoom: 13,
+        zoomControl: false
+    });
+    
+    // Add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+    
+    // Add sample safety markers
+    addSafetyMarkers();
+    
+    // Map click listener for reporting
+    map.on('click', function(e) {
+        console.log('Map clicked at:', e.latlng);
+    });
+    
+    console.log('SafePath map initialized with OpenStreetMap!');
+}
+
+// Add sample safety markers
+function addSafetyMarkers() {
+    const issueLocations = [
+        { lat: 28.5400, lng: 77.3850, type: 'lighting', title: 'Poor Lighting Reported', description: 'Street lights not working in this area' },
+        { lat: 28.5320, lng: 77.3950, type: 'harassment', title: 'Harassment Incident', description: 'Multiple reports of harassment' },
+        { lat: 28.5380, lng: 77.3880, type: 'scam', title: 'Scam Activity Reported', description: 'Suspicious activity reported by users' },
+        { lat: 28.5290, lng: 77.3820, type: 'infrastructure', title: 'Road Damage', description: 'Poor road conditions' }
+    ];
+    
+    issueLocations.forEach(issue => {
+        const marker = L.marker([issue.lat, issue.lng], {
+            icon: markerIcons[issue.type]
+        }).addTo(map);
+        
+        marker.bindPopup(`
+            <div style="padding: 10px;">
+                <strong>${issue.title}</strong><br>
+                <p style="margin: 5px 0; color: #666;">${issue.description}</p>
+                <small style="color: #999;">Reported by community</small>
+            </div>
+        `);
+        
+        safetyMarkers.push(marker);
+    });
+}
+
+// Initialize SafePath Router
+let safePathRouter;
+let currentRoutePolylines = [];
+
+// Find safe route function with advanced algorithm
+async function findSafeRoute() {
+    const origin = document.getElementById('origin').value;
+    const destination = document.getElementById('destination').value;
+    
+    if (!destination.trim()) {
+        alert('Please enter a destination');
+        return;
+    }
+    
+    // Show loading state
+    document.getElementById('routeOptions').style.display = 'block';
+    document.getElementById('safetyInsights').style.display = 'block';
+    
+    // Clear existing routes
+    currentRoutePolylines.forEach(polyline => map.removeLayer(polyline));
+    currentRoutePolylines = [];
+    
+    try {
+        // Initialize router if not already done
+        if (!safePathRouter) {
+            safePathRouter = new SafePathRouter();
+        }
+        
+        // Calculate routes using advanced algorithm
+        const routeData = await safePathRouter.calculateRoutes(origin, destination);
+        
+        // Display routes on map
+        displayCalculatedRoutes(routeData);
+        
+    } catch (error) {
+        console.error('Route calculation failed:', error);
+        // Fallback to demo routes
+        displayDemoRoutes();
+    }
+}
+
+// Display routes calculated by SafePath algorithm
+function displayCalculatedRoutes(routeData) {
+    const { safeRoute, fastRoute, metrics } = routeData;
+    
+    // Display safe route (green)
+    const safePolyline = L.polyline(safeRoute, {
+        color: '#00b894',
+        weight: 6,
+        opacity: 0.8,
+        smoothFactor: 1
+    }).addTo(map);
+    
+    safePolyline.bindPopup('<strong>🛡️ SafePath Route</strong><br/>Prioritizes your safety and security');
+    currentRoutePolylines.push(safePolyline);
+    
+    // Display fast route (pink)
+    const fastPolyline = L.polyline(fastRoute, {
+        color: '#fd79a8',
+        weight: 5,
+        opacity: 0.6,
+        smoothFactor: 1
+    }).addTo(map);
+    
+    fastPolyline.bindPopup('<strong>⚡ Quick Route</strong><br/>Fastest path with minimum safety threshold');
+    currentRoutePolylines.push(fastPolyline);
+    
+    // Update UI with calculated metrics
+    updateRouteUI(metrics);
+    
+    // Fit map to show both routes
+    const allPoints = [...safeRoute, ...fastRoute];
+    if (allPoints.length > 0) {
+        const bounds = L.latLngBounds(allPoints);
+        map.fitBounds(bounds, { padding: [50, 50] });
+        
+        // Add start and end markers
+        addRouteMarkers(safeRoute[0], safeRoute[safeRoute.length - 1]);
+    }
+}
+
+// Fallback demo routes
+function displayDemoRoutes() {
+    console.log('Using demo routes');
+    
+    // Demo safe route
+    const safeRoute = [
+        [28.5355, 77.3910],
+        [28.5365, 77.3920],
+        [28.5375, 77.3935],
+        [28.5385, 77.3950],
+        [28.5390, 77.3970],
+        [28.5400, 77.3985]
+    ];
+    
+    // Demo fast route
+    const fastRoute = [
+        [28.5355, 77.3910],
+        [28.5358, 77.3925],
+        [28.5368, 77.3945],
+        [28.5378, 77.3960],
+        [28.5388, 77.3975],
+        [28.5400, 77.3985]
+    ];
+    
+    // Display demo routes
+    const safePolyline = L.polyline(safeRoute, {
+        color: '#00b894',
+        weight: 6,
+        opacity: 0.8,
+        smoothFactor: 1
+    }).addTo(map);
+    
+    currentRoutePolylines.push(safePolyline);
+    
+    const fastPolyline = L.polyline(fastRoute, {
+        color: '#fd79a8',
+        weight: 5,
+        opacity: 0.6,
+        smoothFactor: 1
+    }).addTo(map);
+    
+    currentRoutePolylines.push(fastPolyline);
+    
+    // Demo metrics
+    const demoMetrics = {
+        safeRoute: {
+            safetyScore: 89,
+            time: 18,
+            avoidedIssues: 3,
+            insights: ['Well-lit main roads selected', 'Higher foot traffic areas preferred', '3 reported issues avoided']
+        },
+        fastRoute: {
+            safetyScore: 71,
+            time: 14,
+            avoidedIssues: 1,
+            insights: ['Direct route prioritized', 'Moderate safety measures', 'Fastest available path']
+        }
+    };
+    
+    updateRouteUI(demoMetrics);
+    
+    // Fit map and add markers
+    const allPoints = [...safeRoute, ...fastRoute];
+    const bounds = L.latLngBounds(allPoints);
+    map.fitBounds(bounds, { padding: [50, 50] });
+    addRouteMarkers(safeRoute[0], safeRoute[safeRoute.length - 1]);
+}
+
+// Update route information in UI
+function updateRouteUI(metrics) {
+    // Update safe route stats
+    const safeRouteTime = document.querySelector('.route-option.active .route-time');
+    const safeRouteSafety = document.querySelector('.route-option.active .route-safety');
+    
+    if (safeRouteTime) safeRouteTime.textContent = `${metrics.safeRoute.time} min`;
+    if (safeRouteSafety) safeRouteSafety.textContent = `${metrics.safeRoute.safetyScore}% Safety Score`;
+    
+    // Update fast route stats
+    const fastRouteTime = document.querySelector('.route-option:not(.active) .route-time');
+    const fastRouteSafety = document.querySelector('.route-option:not(.active) .route-safety');
+    
+    if (fastRouteTime) fastRouteTime.textContent = `${metrics.fastRoute.time} min`;
+    if (fastRouteSafety) fastRouteSafety.textContent = `${metrics.fastRoute.safetyScore}% Safety Score`;
+    
+    // Update safety insights
+    updateSafetyInsights(metrics.safeRoute.insights);
+}
+
+// Update safety insights display
+function updateSafetyInsights(insights) {
+    const insightElements = document.querySelectorAll('.insight-item span:last-child');
+    
+    insights.forEach((insight, index) => {
+        if (insightElements[index]) {
+            insightElements[index].textContent = insight;
+        }
+    });
+}
+
+// Add route start and end markers
+function addRouteMarkers(start, end) {
+    // Add start marker
+    L.marker(start, {
+        icon: L.divIcon({
+            className: 'start-marker',
+            html: '<div style="background: #667eea; color: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">📍</div>',
+            iconSize: [35, 35]
+        })
+    }).addTo(map).bindPopup('<strong>Start: Your Location</strong>');
+    
+    // Add end marker
+    L.marker(end, {
+        icon: L.divIcon({
+            className: 'end-marker',
+            html: '<div style="background: #00b894; color: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">🎯</div>',
+            iconSize: [35, 35]
+        })
+    }).addTo(map).bindPopup('<strong>End: Your Destination</strong>');
+}
+
+// Select route function
+function selectRoute(type) {
+    document.querySelectorAll('.route-option').forEach(option => {
+        option.classList.remove('active');
+    });
+    event.currentTarget.classList.add('active');
+    
+    // Highlight selected route
+    currentRoutePolylines.forEach((polyline, index) => {
+        if (type === 'safe' && index === 0) {
+            polyline.setStyle({ weight: 8, opacity: 1 });
+        } else if (type === 'fast' && index === 1) {
+            polyline.setStyle({ weight: 8, opacity: 1 });
+        } else {
+            polyline.setStyle({ weight: 4, opacity: 0.4 });
+        }
+    });
+    
+    console.log(`Selected ${type} route`);
+}
+
+// Report issue function
+function reportIssue(issueType) {
+    const location = document.getElementById('currentLocation').textContent;
+    
+    // Highlight selected button
+    document.querySelectorAll('.report-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.currentTarget.classList.add('active');
+    
+    // Get current map center as report location
+    const center = map.getCenter();
+    const reportLocation = [center.lat, center.lng];
+    
+    // Add marker for the new report with animation
+    const marker = L.marker(reportLocation, {
+        icon: markerIcons[issueType]
+    }).addTo(map);
+    
+    marker.bindPopup(`
+        <div style="padding: 10px;">
+            <strong>New ${issueType} report</strong><br>
+            <p style="margin: 5px 0; color: #666;">Just reported by you</p>
+            <small style="color: #999;">Thank you for helping the community!</small>
+        </div>
+    `).openPopup();
+    
+    // Animate marker
+    let bounce = 0;
+    const bounceInterval = setInterval(() => {
+        bounce++;
+        if (bounce > 5) {
+            clearInterval(bounceInterval);
+        }
+    }, 200);
+    
+    // Simulate report submission
+    setTimeout(() => {
+        event.currentTarget.classList.remove('active');
+        document.getElementById('reportModal').style.display = 'flex';
+        
+        console.log({
+            type: issueType,
+            location: location,
+            coordinates: reportLocation,
+            timestamp: new Date().toISOString()
+        });
+    }, 500);
+}
+
+// Close modal function
+function closeModal() {
+    document.getElementById('reportModal').style.display = 'none';
+}
+
+// Center map function
+function centerMap() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            map.setView([position.coords.latitude, position.coords.longitude], 15);
+        });
+    } else {
+        // Fallback to Greater Noida center
+        map.setView([28.5355, 77.3910], 13);
+    }
+}
+
+// Toggle layer function
+function toggleLayer(layer) {
+    if (layer === 'reports') {
+        safetyMarkers.forEach(marker => {
+            if (map.hasLayer(marker)) {
+                map.removeLayer(marker);
+            } else {
+                map.addLayer(marker);
+            }
+        });
+    }
+    console.log(`Toggling ${layer} layer`);
+}
+
+// Update current location simulation
+function updateCurrentLocation() {
+    const locations = [
+        'Greater Noida, Sec 16',
+        'Greater Noida, Sec 15', 
+        'Greater Noida, Alpha Commercial Belt',
+        'Greater Noida, Sec 18',
+        'Greater Noida, Knowledge Park'
+    ];
+    
+    setInterval(() => {
+        const randomLocation = locations[Math.floor(Math.random() * locations.length)];
+        document.getElementById('currentLocation').textContent = randomLocation;
+    }, 30000);
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+    updateCurrentLocation();
+    console.log('✅ SafePath MVP initialized with OpenStreetMap - No API key required!');
+});
+</script>
+{% endblock %}

@@ -1,0 +1,567 @@
+{% extends "base.html" %}
+
+{% block title %}Community Reports - SafePath{% endblock %}
+
+{% block content %}
+<!-- ***** Header Area Start ***** -->
+<header class="header-area header-sticky">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <nav class="main-nav">
+                    <!-- ***** Logo Start ***** -->
+                    <a href="{{ url_for('home') }}" class="logo" style="display: flex; align-items: center;">
+                        <span style="font-size: 32px; font-weight: 700; color: #667eea;">🛡️ SafePath</span>
+                    </a>
+                    <!-- ***** Logo End ***** -->
+                    <!-- ***** Menu Start ***** -->
+                    <ul class="nav">
+                        <li><a href="{{ url_for('home') }}">Map</a></li>
+                        <li><a href="{{ url_for('community_reports') }}" class="active">Community Reports</a></li>
+                        <li><a href="{{ url_for('submit_report') }}">Submit Report</a></li>
+                        <li><a href="#about">About</a></li>
+                        <li class="user-menu">
+                            <span class="user-welcome">{{ username }}</span>
+                            <div class="gradient-button"><a href="{{ url_for('logout') }}"><i class="fa fa-sign-out-alt"></i> Logout</a></div>
+                        </li> 
+                    </ul>        
+                    <a class='menu-trigger'>
+                        <span>Menu</span>
+                    </a>
+                    <!-- ***** Menu End ***** -->
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+<!-- ***** Header Area End ***** -->
+
+<!-- ***** Community Reports Section Start ***** -->
+<div class="community-reports-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-header">
+                    <h2>🏘️ Community Safety Reports</h2>
+                    <p>Stay informed about safety incidents in Greater Noida area. Help keep our community safe by sharing and staying aware.</p>
+                    <div class="header-actions">
+                        <a href="{{ url_for('submit_report') }}" class="btn-submit-report">
+                            <i class="fa fa-plus"></i> Submit New Report
+                        </a>
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" onclick="filterReports('all')">All Reports</button>
+                            <button class="filter-btn" onclick="filterReports('scam')">🚨 Scams</button>
+                            <button class="filter-btn" onclick="filterReports('harassment')">⚠️ Harassment</button>
+                            <button class="filter-btn" onclick="filterReports('lighting')">🔦 Lighting</button>
+                            <button class="filter-btn" onclick="filterReports('infrastructure')">🚧 Infrastructure</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Community Stats -->
+        <div class="row">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-info">
+                        <h3>{{ reports|length }}</h3>
+                        <span>Total Reports</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon">🚨</div>
+                    <div class="stat-info">
+                        <h3>{{ reports|selectattr('type', 'equalto', 'scam')|list|length }}</h3>
+                        <span>Scam Reports</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-info">
+                        <h3>{{ reports|selectattr('severity', 'equalto', 'high')|list|length }}</h3>
+                        <span>High Priority</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon">📍</div>
+                    <div class="stat-info">
+                        <h3>15</h3>
+                        <span>Areas Covered</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Feed -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="reports-feed">
+                    {% for report in reports %}
+                    <div class="report-card" data-type="{{ report.type }}" data-severity="{{ report.severity }}">
+                        <div class="report-header">
+                            <div class="report-type {{ report.type }}">
+                                {% if report.type == 'scam' %}
+                                    <span class="type-icon">🚨</span>
+                                    <span class="type-label">Scam Alert</span>
+                                {% elif report.type == 'harassment' %}
+                                    <span class="type-icon">⚠️</span>
+                                    <span class="type-label">Harassment</span>
+                                {% elif report.type == 'lighting' %}
+                                    <span class="type-icon">🔦</span>
+                                    <span class="type-label">Poor Lighting</span>
+                                {% elif report.type == 'infrastructure' %}
+                                    <span class="type-icon">🚧</span>
+                                    <span class="type-label">Infrastructure</span>
+                                {% endif %}
+                            </div>
+                            <div class="report-severity {{ report.severity }}">
+                                {% if report.severity == 'high' %}
+                                    <span class="severity-dot high"></span>
+                                    <span>High Risk</span>
+                                {% elif report.severity == 'medium' %}
+                                    <span class="severity-dot medium"></span>
+                                    <span>Medium Risk</span>
+                                {% else %}
+                                    <span class="severity-dot low"></span>
+                                    <span>Low Risk</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="report-content">
+                            <h4>{{ report.title }}</h4>
+                            <p class="report-description">{{ report.description }}</p>
+                            
+                            <div class="report-meta">
+                                <div class="location">
+                                    <i class="fa fa-map-marker-alt"></i>
+                                    <span>{{ report.location }}</span>
+                                </div>
+                                <div class="user-info">
+                                    <i class="fa fa-user"></i>
+                                    <span>{{ report.user }}</span>
+                                </div>
+                                <div class="timestamp">
+                                    <i class="fa fa-clock"></i>
+                                    <span>{{ report.timestamp }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="report-actions">
+                            <button class="action-btn helpful" onclick="markHelpful({{ report.id }})">
+                                <i class="fa fa-thumbs-up"></i> Helpful (12)
+                            </button>
+                            <button class="action-btn share" onclick="shareReport({{ report.id }})">
+                                <i class="fa fa-share"></i> Share
+                            </button>
+                            <button class="action-btn view-location" onclick="viewOnMap('{{ report.location }}')">
+                                <i class="fa fa-map"></i> View on Map
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ***** Community Reports Section End ***** -->
+
+<!-- ***** Footer Start ***** -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <p>Copyright © 2025 SafePath Co., Ltd. All Rights Reserved.</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<style>
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-welcome {
+    color: #fff;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+/* Community Reports Styling */
+.community-reports-section {
+    padding: 120px 0 80px 0;
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.page-header h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.page-header p {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 30px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.header-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.btn-submit-report {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-submit-report:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    border: 2px solid #e1e5e9;
+    border-radius: 20px;
+    background: white;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.9rem;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+    border-color: #667eea;
+    background: #667eea;
+    color: white;
+}
+
+/* Stats Cards */
+.stat-card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    width: 60px;
+    text-align: center;
+}
+
+.stat-info h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+}
+
+.stat-info span {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* Reports Feed */
+.reports-feed {
+    margin-top: 20px;
+}
+
+.report-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    margin-bottom: 25px;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.report-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px 15px;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.report-type {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.report-type.scam {
+    background: rgba(255, 107, 107, 0.1);
+    color: #ff6b6b;
+}
+
+.report-type.harassment {
+    background: rgba(255, 165, 0, 0.1);
+    color: #ffa500;
+}
+
+.report-type.lighting {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+.report-type.infrastructure {
+    background: rgba(253, 121, 168, 0.1);
+    color: #fd79a8;
+}
+
+.report-severity {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.severity-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.severity-dot.high {
+    background: #ff4757;
+}
+
+.severity-dot.medium {
+    background: #ffa502;
+}
+
+.severity-dot.low {
+    background: #2ed573;
+}
+
+.report-content {
+    padding: 20px 25px;
+}
+
+.report-content h4 {
+    color: #333;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.report-description {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.report-meta {
+    display: flex;
+    gap: 25px;
+    flex-wrap: wrap;
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.report-meta > div {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.report-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 25px 20px;
+    border-top: 1px solid #f1f3f4;
+    background: #fafafa;
+}
+
+.action-btn {
+    background: none;
+    border: 1px solid #e1e5e9;
+    padding: 8px 15px;
+    border-radius: 20px;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.85rem;
+}
+
+.action-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.action-btn.helpful:hover {
+    background: #2ed573;
+    border-color: #2ed573;
+    color: white;
+}
+
+.action-btn.share:hover {
+    background: #667eea;
+    border-color: #667eea;
+    color: white;
+}
+
+.action-btn.view-location:hover {
+    background: #fd79a8;
+    border-color: #fd79a8;
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .header-actions {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .filter-buttons {
+        justify-content: center;
+    }
+    
+    .report-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+    
+    .report-meta {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .report-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .action-btn {
+        text-align: center;
+    }
+    
+    .user-menu {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+</style>
+
+<script>
+// Filter reports by type
+function filterReports(type) {
+    // Update active filter button
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Show/hide reports
+    document.querySelectorAll('.report-card').forEach(card => {
+        if (type === 'all' || card.dataset.type === type) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// Mark report as helpful
+function markHelpful(reportId) {
+    const btn = event.target;
+    btn.style.background = '#2ed573';
+    btn.style.color = 'white';
+    btn.style.borderColor = '#2ed573';
+    
+    // Update count (simulate)
+    const currentCount = parseInt(btn.textContent.match(/\d+/)[0]);
+    btn.innerHTML = `<i class="fa fa-thumbs-up"></i> Helpful (${currentCount + 1})`;
+    
+    console.log(`Marked report ${reportId} as helpful`);
+}
+
+// Share report
+function shareReport(reportId) {
+    if (navigator.share) {
+        navigator.share({
+            title: 'SafePath Community Report',
+            text: 'Check out this safety report from our community',
+            url: window.location.href
+        });
+    } else {
+        // Fallback for browsers without Web Share API
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+            alert('Report link copied to clipboard!');
+        });
+    }
+    console.log(`Shared report ${reportId}`);
+}
+
+// View location on map
+function viewOnMap(location) {
+    // Redirect to map page with location
+    window.location.href = `/home?location=${encodeURIComponent(location)}`;
+    console.log(`Viewing location: ${location}`);
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Community Reports page loaded');
+});
+</script>
+{% endblock %}

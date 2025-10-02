@@ -1,0 +1,568 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Report - SafePath{% endblock %}
+
+{% block content %}
+<!-- ***** Header Area Start ***** -->
+<header class="header-area header-sticky">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <nav class="main-nav">
+                    <!-- ***** Logo Start ***** -->
+                    <a href="{{ url_for('home') }}" class="logo" style="display: flex; align-items: center;">
+                        <span style="font-size: 32px; font-weight: 700; color: #667eea;">🛡️ SafePath</span>
+                    </a>
+                    <!-- ***** Logo End ***** -->
+                    <!-- ***** Menu Start ***** -->
+                    <ul class="nav">
+                        <li><a href="{{ url_for('home') }}">Map</a></li>
+                        <li><a href="{{ url_for('community_reports') }}">Community Reports</a></li>
+                        <li><a href="{{ url_for('submit_report') }}" class="active">Submit Report</a></li>
+                        <li><a href="#about">About</a></li>
+                        <li class="user-menu">
+                            <span class="user-welcome">{{ username }}</span>
+                            <div class="gradient-button"><a href="{{ url_for('logout') }}"><i class="fa fa-sign-out-alt"></i> Logout</a></div>
+                        </li> 
+                    </ul>        
+                    <a class='menu-trigger'>
+                        <span>Menu</span>
+                    </a>
+                    <!-- ***** Menu End ***** -->
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+<!-- ***** Header Area End ***** -->
+
+<!-- ***** Submit Report Section Start ***** -->
+<div class="submit-report-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <div class="page-header">
+                    <h2>📝 Submit Safety Report</h2>
+                    <p>Help keep Greater Noida safe by reporting incidents, scams, or safety concerns. Your report will help other community members stay aware and safe.</p>
+                </div>
+                
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <div class="report-form-container">
+                    <form action="{{ url_for('submit_report') }}" method="POST" class="report-form">
+                        <!-- Report Type Selection -->
+                        <div class="form-section">
+                            <h4>🏷️ What type of incident are you reporting?</h4>
+                            <div class="type-selection">
+                                <input type="radio" id="type-scam" name="type" value="scam" required>
+                                <label for="type-scam" class="type-card">
+                                    <div class="type-icon">🚨</div>
+                                    <div class="type-info">
+                                        <h5>Scam/Fraud</h5>
+                                        <p>Fake QR codes, ATM skimming, fake offers, etc.</p>
+                                    </div>
+                                </label>
+                                
+                                <input type="radio" id="type-harassment" name="type" value="harassment" required>
+                                <label for="type-harassment" class="type-card">
+                                    <div class="type-icon">⚠️</div>
+                                    <div class="type-info">
+                                        <h5>Harassment</h5>
+                                        <p>Street harassment, inappropriate behavior, etc.</p>
+                                    </div>
+                                </label>
+                                
+                                <input type="radio" id="type-lighting" name="type" value="lighting" required>
+                                <label for="type-lighting" class="type-card">
+                                    <div class="type-icon">🔦</div>
+                                    <div class="type-info">
+                                        <h5>Poor Lighting</h5>
+                                        <p>Broken street lights, dark areas, etc.</p>
+                                    </div>
+                                </label>
+                                
+                                <input type="radio" id="type-infrastructure" name="type" value="infrastructure" required>
+                                <label for="type-infrastructure" class="type-card">
+                                    <div class="type-icon">🚧</div>
+                                    <div class="type-info">
+                                        <h5>Infrastructure</h5>
+                                        <p>Road damage, open manholes, construction hazards, etc.</p>
+                                    </div>
+                                </label>
+                                
+                                <input type="radio" id="type-other" name="type" value="other" required>
+                                <label for="type-other" class="type-card">
+                                    <div class="type-icon">❗</div>
+                                    <div class="type-info">
+                                        <h5>Other Issue</h5>
+                                        <p>Any other safety concern not listed above</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Report Details -->
+                        <div class="form-section">
+                            <h4>📋 Report Details</h4>
+                            
+                            <div class="form-group">
+                                <label for="title">Report Title *</label>
+                                <input type="text" id="title" name="title" placeholder="Brief description of the incident" required maxlength="100">
+                                <small>Provide a clear, concise title (max 100 characters)</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="description">Detailed Description *</label>
+                                <textarea id="description" name="description" rows="5" placeholder="Provide detailed information about what happened, when it occurred, and any other relevant details..." required maxlength="1000"></textarea>
+                                <small>Share as much detail as possible to help others stay safe (max 1000 characters)</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="location">Location *</label>
+                                <input type="text" id="location" name="location" placeholder="e.g., Greater Noida Sector 16, Near Metro Station" required maxlength="200">
+                                <small>Be as specific as possible with the location</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="severity">Severity Level *</label>
+                                <select id="severity" name="severity" required>
+                                    <option value="">Select severity level</option>
+                                    <option value="low">🟢 Low - Minor inconvenience or low-risk issue</option>
+                                    <option value="medium">🟡 Medium - Moderate risk, affects safety</option>
+                                    <option value="high">🔴 High - Serious risk, immediate attention needed</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Information -->
+                        <div class="form-section">
+                            <h4>ℹ️ Additional Information</h4>
+                            
+                            <div class="form-group">
+                                <label for="time-of-day">Time of Day (Optional)</label>
+                                <select id="time-of-day" name="time_of_day">
+                                    <option value="">Select time</option>
+                                    <option value="morning">🌅 Morning (6 AM - 12 PM)</option>
+                                    <option value="afternoon">☀️ Afternoon (12 PM - 6 PM)</option>
+                                    <option value="evening">🌆 Evening (6 PM - 10 PM)</option>
+                                    <option value="night">🌙 Night (10 PM - 6 AM)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group checkbox-group">
+                                <input type="checkbox" id="anonymous" name="anonymous" value="1">
+                                <label for="anonymous">📝 Submit anonymously (your username won't be shown)</label>
+                            </div>
+                            
+                            <div class="form-group checkbox-group">
+                                <input type="checkbox" id="authorities" name="notify_authorities" value="1">
+                                <label for="authorities">🚔 This incident should be reported to local authorities</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Guidelines -->
+                        <div class="guidelines">
+                            <h5>📜 Community Guidelines</h5>
+                            <ul>
+                                <li>Only report genuine safety incidents and concerns</li>
+                                <li>Be respectful and factual in your descriptions</li>
+                                <li>Do not include personal information of individuals</li>
+                                <li>For emergencies, contact local police (100) or emergency services (108) immediately</li>
+                                <li>Reports are reviewed and may be removed if they violate community standards</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn-submit">
+                                <i class="fa fa-paper-plane"></i> Submit Report
+                            </button>
+                            <a href="{{ url_for('community_reports') }}" class="btn-cancel">
+                                <i class="fa fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ***** Submit Report Section End ***** -->
+
+<!-- ***** Footer Start ***** -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <p>Copyright © 2025 SafePath Co., Ltd. All Rights Reserved.</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<style>
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-welcome {
+    color: #fff;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+/* Submit Report Styling */
+.submit-report-section {
+    padding: 120px 0 80px 0;
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.page-header h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.page-header p {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.alert {
+    padding: 15px 20px;
+    margin-bottom: 25px;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-danger {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.report-form-container {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.form-section {
+    margin-bottom: 40px;
+}
+
+.form-section h4 {
+    color: #333;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f1f3f4;
+}
+
+/* Type Selection */
+.type-selection {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+}
+
+.type-selection input[type="radio"] {
+    display: none;
+}
+
+.type-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    border: 2px solid #e1e5e9;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: white;
+}
+
+.type-card:hover {
+    border-color: #667eea;
+    background: #f8f9ff;
+}
+
+.type-selection input[type="radio"]:checked + .type-card {
+    border-color: #667eea;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+}
+
+.type-icon {
+    font-size: 2.5rem;
+    width: 60px;
+    text-align: center;
+}
+
+.type-info h5 {
+    color: #333;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 5px 0;
+}
+
+.type-info p {
+    color: #666;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Form Fields */
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 1rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #e1e5e9;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+    background: white;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    color: #888;
+    font-size: 0.85rem;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+.checkbox-group label {
+    margin: 0;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+/* Guidelines */
+.guidelines {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    border-left: 4px solid #667eea;
+}
+
+.guidelines h5 {
+    color: #333;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.guidelines ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.guidelines li {
+    color: #666;
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.btn-submit {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 40px;
+    border: none;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-cancel {
+    background: #6c757d;
+    color: white;
+    padding: 15px 40px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.btn-cancel:hover {
+    background: #545b62;
+    color: white;
+    text-decoration: none;
+    transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .report-form-container {
+        padding: 25px;
+        border-radius: 15px;
+    }
+    
+    .type-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn-submit,
+    .btn-cancel {
+        text-align: center;
+    }
+    
+    .checkbox-group {
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .user-menu {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+</style>
+
+<script>
+// Form validation and enhancements
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.report-form');
+    const titleInput = document.getElementById('title');
+    const descriptionTextarea = document.getElementById('description');
+    
+    // Character count for title
+    titleInput.addEventListener('input', function() {
+        const remaining = 100 - this.value.length;
+        const small = this.nextElementSibling;
+        small.textContent = `Provide a clear, concise title (${remaining} characters remaining)`;
+        
+        if (remaining < 10) {
+            small.style.color = '#ff4757';
+        } else {
+            small.style.color = '#888';
+        }
+    });
+    
+    // Character count for description
+    descriptionTextarea.addEventListener('input', function() {
+        const remaining = 1000 - this.value.length;
+        const small = this.nextElementSibling;
+        small.textContent = `Share as much detail as possible to help others stay safe (${remaining} characters remaining)`;
+        
+        if (remaining < 50) {
+            small.style.color = '#ff4757';
+        } else {
+            small.style.color = '#888';
+        }
+    });
+    
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        const title = titleInput.value.trim();
+        const description = descriptionTextarea.value.trim();
+        const location = document.getElementById('location').value.trim();
+        const type = document.querySelector('input[name="type"]:checked');
+        const severity = document.getElementById('severity').value;
+        
+        if (!title || !description || !location || !type || !severity) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+            return;
+        }
+        
+        if (title.length > 100) {
+            e.preventDefault();
+            alert('Title must be 100 characters or less.');
+            return;
+        }
+        
+        if (description.length > 1000) {
+            e.preventDefault();
+            alert('Description must be 1000 characters or less.');
+            return;
+        }
+        
+        // Show loading state
+        const submitBtn = document.querySelector('.btn-submit');
+        submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Submitting...';
+        submitBtn.disabled = true;
+    });
+    
+    console.log('Submit Report page loaded');
+});
+</script>
+{% endblock %}
