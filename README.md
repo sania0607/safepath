@@ -9,7 +9,36 @@
 - Password hashing with Werkzeug security
 - Session management for personalized experiencety-First Navigation App
 
-**SafePath** is an innovative safety-first navigation application designed for urban travelers. It provides intelligent route planning that prioritizes user safety while maintaining efficiency, combined with a comprehensive community-driven incident reporting system.
+# 🛡️ SafePath - AI-Enhanced Safety Navigation
+
+**SafePath** is an intelligent, data-driven safety navigation platform that leverages **machine learning-ready architecture** and **geospatial AI algorithms** to provide women in Delhi with the safest routes. Combining real infrastructure data with community-powered insights, SafePath redefines urban navigation with safety as the primary focus.
+
+## 🤖 AI/ML Features
+
+### 🧠 **Intelligent Route Optimization**
+- **Dual-Algorithm Routing**: Advanced pathfinding using NetworkX + Dijkstra's algorithm
+  - **Safest Route**: ML-ready weighted graph with multi-factor safety scoring
+  - **Fastest Route**: Shortest path optimization for time-sensitive travel
+- **Geospatial AI Processing**: 3,779 analysis points covering Delhi with cKDTree spatial indexing
+- **Predictive Safety Scoring**: Data-driven model using 13 safety features
+- **Real-time Route Analysis**: Automated safety assessment along calculated paths
+
+### 📊 **Data-Driven Safety Model**
+- **Multi-Factor Analysis**: Weighted algorithm analyzing:
+  - Street lighting density (+1.0 weight)
+  - Police station proximity (+1.5 weight)  
+  - Public transit accessibility (+0.5 weight)
+  - Nightlife area patterns (-0.7 weight)
+- **Community Intelligence**: Crowdsourced incident reports with severity classification
+- **Scalable ML Architecture**: Ready for supervised learning integration
+
+## 🌟 Key Features
+
+### 🗺️ **Smart Route Planning**
+- **Interactive Map Interface**: Leaflet.js + OpenStreetMap integration
+- **Place Name Recognition**: NLP-ready autocomplete for Delhi locations
+- **Route Type Toggle**: Instant comparison between safest and fastest paths
+- **Visual Route Analysis**: Color-coded safety indicators
 
 ## 🌟 Features
 
