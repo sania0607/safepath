@@ -147,6 +147,19 @@ class Database:
             print(f"Error getting all users: {e}")
             return []
     
+    def clear_all_reports(self):
+        """Delete all reports from the database (for resetting sample data)"""
+        try:
+            query = "DELETE FROM reports;"
+            self.cursor.execute(query)
+            self.connection.commit()
+            print("All reports cleared successfully")
+            return True
+        except Exception as e:
+            print(f"Error clearing reports: {e}")
+            self.connection.rollback()
+            return False
+    
     def create_report(self, user_id, report_type, title, description, location, severity, time_of_day=None, is_anonymous=False, notify_authorities=False):
         """Create a new safety report"""
         try:

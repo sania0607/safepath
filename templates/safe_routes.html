@@ -1,0 +1,634 @@
+{% extends "base.html" %}
+
+{% block title %}Safe Routes - SafePath{% endblock %}
+
+{% block content %}
+<!-- ***** Header Area Start ***** -->
+<header class="header-area header-sticky">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <nav class="main-nav">
+                    <!-- ***** Logo Start ***** -->
+                    <a href="{{ url_for('safe_routes') }}" class="logo" style="display: flex; align-items: center;">
+                        <span style="font-size: 32px; font-weight: 700; color: #667eea;">🛡️ SafePath</span>
+                    </a>
+                    <!-- ***** Logo End ***** -->
+                    <!-- ***** Menu Start ***** -->
+                    <ul class="nav">
+                        <li><a href="{{ url_for('safe_routes') }}" class="active">Map</a></li>
+                        <li><a href="{{ url_for('community_reports') }}">Community Reports</a></li>
+                        <li><a href="{{ url_for('submit_report') }}">Submit Report</a></li>
+                        <li><a href="#about">About</a></li>
+                        <li class="user-menu">
+                            <span class="user-welcome">{{ username }}</span>
+                            <div class="gradient-button"><a href="{{ url_for('logout') }}"><i class="fa fa-sign-out-alt"></i> Logout</a></div>
+                        </li> 
+                    </ul>        
+                    <a class='menu-trigger'>
+                        <span>Menu</span>
+                    </a>
+                    <!-- ***** Menu End ***** -->
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+<!-- ***** Header Area End ***** -->
+
+<div class="container-fluid px-0">
+    <!-- Hero Section -->
+    <div class="safe-routes-hero bg-gradient text-white text-center py-5">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">Find Your Safest Route</h1>
+            <p class="lead">Data-driven route planning based on real safety data</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container my-5">
+        <div class="row">
+            <!-- Route Planning Panel -->
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-route me-2"></i>Plan Your Route</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="routeForm">
+                            <!-- Origin -->
+                            <div class="mb-3">
+                                <label for="origin" class="form-label">
+                                    <i class="fas fa-map-marker-alt text-success"></i> Starting Point
+                                </label>
+                                <input type="text" class="form-control" id="origin" 
+                                       placeholder="Click map or enter coordinates" readonly>
+                                <small class="form-text text-muted">Click on the map to set origin</small>
+                            </div>
+
+                            <!-- Destination -->
+                            <div class="mb-3">
+                                <label for="destination" class="form-label">
+                                    <i class="fas fa-map-marker-alt text-danger"></i> Destination
+                                </label>
+                                <input type="text" class="form-control" id="destination" 
+                                       placeholder="Click map or enter coordinates" readonly>
+                                <small class="form-text text-muted">Click on the map to set destination</small>
+                            </div>
+
+                            <!-- Calculate Button -->
+                            <button type="submit" class="btn btn-primary w-100 mb-2" id="calculateBtn">
+                                <i class="fas fa-directions me-2"></i>Calculate Safest Route
+                            </button>
+                            
+                            <!-- Clear Button -->
+                            <button type="button" class="btn btn-outline-secondary w-100 mb-2" id="clearBtn">
+                                <i class="fas fa-times me-2"></i>Clear Route
+                            </button>
+                            
+                            <!-- Toggle Reports Button -->
+                            <button type="button" class="btn btn-outline-info w-100" id="toggleReportsBtn" onclick="toggleReports()">
+                                <i class="fas fa-eye me-2"></i>Hide Community Reports
+                            </button>
+                        </form>
+
+                        <!-- Route Info -->
+                        <div id="routeInfo" class="mt-4 d-none">
+                            <hr>
+                            <h6 class="text-primary"><i class="fas fa-info-circle me-2"></i>Route Information</h6>
+                            <div class="bg-light p-3 rounded">
+                                <p class="mb-2"><strong>Waypoints:</strong> <span id="waypointCount">-</span></p>
+                                <p class="mb-2"><strong>Status:</strong> <span id="routeStatus" class="badge bg-success">Safe</span></p>
+                                <div id="safetyScores" class="mt-2">
+                                    <small class="text-muted">Safety scores calculated along route</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Loading Indicator -->
+                        <div id="loadingIndicator" class="mt-3 d-none">
+                            <div class="text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2 text-muted">
+                                    <strong id="loadingStatus">Calculating safest route...</strong><br>
+                                    <small id="loadingDetail">This may take 30-60 seconds on first request</small>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Error Message -->
+                        <div id="errorMessage" class="alert alert-danger mt-3 d-none" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span id="errorText"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Safety Legend -->
+                <div class="card shadow-sm mt-3">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Map Legend</h6>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="small fw-bold mb-2">Route Safety:</h6>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-success me-2" style="width: 20px; height: 20px;"></span>
+                            <small>High Safety (Well-lit, Near Police)</small>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-warning me-2" style="width: 20px; height: 20px;"></span>
+                            <small>Medium Safety</small>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="badge bg-danger me-2" style="width: 20px; height: 20px;"></span>
+                            <small>Lower Safety (Avoid if possible)</small>
+                        </div>
+                        
+                        <hr class="my-2">
+                        
+                        <h6 class="small fw-bold mb-2">Community Reports:</h6>
+                        <div class="d-flex align-items-center mb-2">
+                            <span style="font-size: 18px;" class="me-2">🚨</span>
+                            <small>Scam Alert</small>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span style="font-size: 18px;" class="me-2">⚠️</span>
+                            <small>Harassment</small>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span style="font-size: 18px;" class="me-2">🔦</span>
+                            <small>Poor Lighting</small>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span style="font-size: 18px;" class="me-2">🚧</span>
+                            <small>Infrastructure Issue</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span style="font-size: 18px;" class="me-2">❗</span>
+                            <small>Other Safety Concern</small>
+                        </div>
+                        <div class="mt-2 small text-muted">
+                            <i class="fas fa-info-circle"></i> Click markers for details
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Container -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+                        <div id="map" style="height: 600px; width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="mt-2 text-muted small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Click on the map to set your starting point and destination. The safest route will be calculated automatically.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<style>
+    .user-menu {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .user-welcome {
+        color: #fff;
+        font-weight: 500;
+        font-size: 14px;
+    }
+    
+    .safe-routes-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        margin-top: 80px; /* Add space for fixed header */
+    }
+    
+    .leaflet-popup-content-wrapper {
+        border-radius: 8px;
+    }
+    
+    #map {
+        border-radius: 0.375rem;
+    }
+    
+    /* Pulsing animation for highlighted marker */
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.2);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .user-menu {
+            flex-direction: column;
+            gap: 10px;
+        }
+    }
+</style>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// Initialize map centered on Delhi
+const map = L.map('map').setView([28.6139, 77.2090], 11);
+
+// Add OpenStreetMap tiles
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19
+}).addTo(map);
+
+// Variables for route planning
+let originMarker = null;
+let destinationMarker = null;
+let routePolyline = null;
+let originCoords = null;
+let destinationCoords = null;
+let reportMarkers = [];
+
+// Custom marker icons
+const originIcon = L.divIcon({
+    html: '<i class="fas fa-map-marker-alt fa-3x text-success"></i>',
+    className: 'custom-div-icon',
+    iconSize: [30, 42],
+    iconAnchor: [15, 42]
+});
+
+const destinationIcon = L.divIcon({
+    html: '<i class="fas fa-map-marker-alt fa-3x text-danger"></i>',
+    className: 'custom-div-icon',
+    iconSize: [30, 42],
+    iconAnchor: [15, 42]
+});
+
+// Report marker icons with different colors based on type
+const reportIcons = {
+    scam: L.divIcon({
+        html: '<div style="background: #ff6b6b; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); border: 2px solid white;">🚨</div>',
+        className: 'custom-report-icon',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30]
+    }),
+    harassment: L.divIcon({
+        html: '<div style="background: #ffa500; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); border: 2px solid white;">⚠️</div>',
+        className: 'custom-report-icon',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30]
+    }),
+    lighting: L.divIcon({
+        html: '<div style="background: #ffc107; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); border: 2px solid white;">🔦</div>',
+        className: 'custom-report-icon',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30]
+    }),
+    infrastructure: L.divIcon({
+        html: '<div style="background: #fd79a8; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); border: 2px solid white;">🚧</div>',
+        className: 'custom-report-icon',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30]
+    }),
+    other: L.divIcon({
+        html: '<div style="background: #667eea; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); border: 2px solid white;">❗</div>',
+        className: 'custom-report-icon',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30]
+    })
+};
+
+// Add community reports to map
+const communityReports = {{ reports | tojson | safe }};
+
+// Helper function to get approximate coordinates for location names
+function getLocationCoords(location) {
+    // Mapping of Delhi locations to coordinates
+    const locationMap = {
+        // Central Delhi
+        'Connaught Place, Delhi': [28.6315, 77.2167],
+        'Chandni Chowk, Delhi': [28.6506, 77.2303],
+        'Rajiv Chowk Metro, Delhi': [28.6328, 77.2197],
+        
+        // South Delhi
+        'Nehru Place, Delhi': [28.5494, 77.2501],
+        'Lajpat Nagar, Delhi': [28.5677, 77.2431],
+        'Saket, Delhi': [28.5244, 77.2066],
+        
+        // East Delhi
+        'Laxmi Nagar, Delhi': [28.6345, 77.2771],
+        'Mayur Vihar Phase 1, Delhi': [28.6089, 77.2951],
+        
+        // North Delhi
+        'Kamla Nagar, Delhi': [28.6819, 77.2083],
+        
+        // West Delhi
+        'Dwarka Sector 12, Delhi': [28.5921, 77.0460],
+        'Rohini Sector 8, Delhi': [28.6983, 77.1210],
+        'Janakpuri, Delhi': [28.6219, 77.0850],
+        
+        // Greater Noida (for backward compatibility)
+        'Greater Noida Sector 16': [28.5355, 77.3910],
+        'Alpha Commercial Belt': [28.5400, 77.3850],
+        'Greater Noida Sector 22': [28.5320, 77.3950],
+        'Dadri Road, Greater Noida': [28.5380, 77.3880],
+        'Knowledge Park III': [28.5290, 77.3820],
+        'Greater Noida Sector 1': [28.5500, 77.4000],
+        'Beta 1': [28.5250, 77.3700],
+        'Pari Chowk': [28.5070, 77.3730]
+    };
+    
+    // Check for exact match
+    if (locationMap[location]) {
+        return locationMap[location];
+    }
+    
+    // Check for partial match
+    for (const [key, coords] of Object.entries(locationMap)) {
+        if (location.includes(key) || key.includes(location)) {
+            return coords;
+        }
+    }
+    
+    // Default to Delhi center (India Gate area)
+    const baseLat = 28.6139;
+    const baseLon = 77.2090;
+    const randomOffset = () => (Math.random() - 0.5) * 0.05;
+    return [baseLat + randomOffset(), baseLon + randomOffset()];
+}
+
+// Add report markers
+if (communityReports && communityReports.length > 0) {
+    communityReports.forEach(report => {
+        const coords = getLocationCoords(report.location);
+        const reportType = report.type || 'other';
+        const icon = reportIcons[reportType] || reportIcons.other;
+        
+        const marker = L.marker(coords, { icon: icon })
+            .addTo(map)
+            .bindPopup(`
+                <div style="min-width: 200px;">
+                    <h6 class="text-${getSeverityColor(report.severity)} mb-2">
+                        <strong>${report.title || 'Safety Report'}</strong>
+                    </h6>
+                    <p class="mb-2" style="font-size: 0.9em;">${report.description || 'No description provided'}</p>
+                    <div class="small text-muted">
+                        <div><i class="fas fa-map-marker-alt"></i> ${report.location}</div>
+                        <div><i class="fas fa-clock"></i> ${report.timestamp || 'Recently'}</div>
+                        ${report.user ? `<div><i class="fas fa-user"></i> ${report.user}</div>` : '<div><i class="fas fa-user-secret"></i> Anonymous</div>'}
+                    </div>
+                    <div class="mt-2">
+                        <span class="badge bg-${getSeverityColor(report.severity)}">${report.severity || 'medium'} risk</span>
+                        <span class="badge bg-secondary">${reportType}</span>
+                    </div>
+                </div>
+            `);
+        
+        // Store report data with marker for later reference
+        marker.reportData = report;
+        reportMarkers.push(marker);
+    });
+    
+    // Check if we should highlight a specific report from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const highlightLocation = urlParams.get('location');
+    const highlightTitle = urlParams.get('title');
+    const shouldHighlight = urlParams.get('highlight') === 'true';
+    
+    if (shouldHighlight && highlightLocation) {
+        // Find the marker for this report
+        const targetMarker = reportMarkers.find(marker => 
+            marker.reportData.location === highlightLocation || 
+            (highlightTitle && marker.reportData.title === highlightTitle)
+        );
+        
+        if (targetMarker) {
+            // Center map on this marker with zoom
+            map.setView(targetMarker.getLatLng(), 15);
+            
+            // Open the popup
+            setTimeout(() => {
+                targetMarker.openPopup();
+                
+                // Add a pulsing effect to the marker
+                const markerElement = targetMarker.getElement();
+                if (markerElement) {
+                    markerElement.style.animation = 'pulse 2s infinite';
+                    markerElement.style.filter = 'drop-shadow(0 0 10px rgba(255, 0, 0, 0.8))';
+                }
+            }, 500);
+        }
+    }
+}
+
+function getSeverityColor(severity) {
+    switch(severity) {
+        case 'high': return 'danger';
+        case 'medium': return 'warning';
+        case 'low': return 'success';
+        default: return 'info';
+    }
+}
+
+// Handle map clicks
+map.on('click', function(e) {
+    const lat = e.latlng.lat;
+    const lon = e.latlng.lng;
+    
+    if (!originMarker) {
+        // Set origin
+        originCoords = { lon: lon, lat: lat };
+        originMarker = L.marker([lat, lon], { icon: originIcon })
+            .addTo(map)
+            .bindPopup('<b>Starting Point</b><br>Click destination to calculate route')
+            .openPopup();
+        
+        document.getElementById('origin').value = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+    } else if (!destinationMarker) {
+        // Set destination
+        destinationCoords = { lon: lon, lat: lat };
+        destinationMarker = L.marker([lat, lon], { icon: destinationIcon })
+            .addTo(map)
+            .bindPopup('<b>Destination</b>')
+            .openPopup();
+        
+        document.getElementById('destination').value = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+        
+        // Auto-calculate route
+        calculateRoute();
+    }
+});
+
+// Calculate route
+async function calculateRoute() {
+    if (!originCoords || !destinationCoords) {
+        showError('Please select both origin and destination points');
+        return;
+    }
+    
+    // Show loading with helpful message
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const loadingStatus = document.getElementById('loadingStatus');
+    const loadingDetail = document.getElementById('loadingDetail');
+    
+    loadingIndicator.classList.remove('d-none');
+    document.getElementById('errorMessage').classList.add('d-none');
+    document.getElementById('routeInfo').classList.add('d-none');
+    
+    // Update status messages
+    let elapsed = 0;
+    loadingStatus.textContent = 'Downloading road network...';
+    loadingDetail.textContent = 'First request may take 30-60 seconds';
+    
+    const statusInterval = setInterval(() => {
+        elapsed += 2;
+        if (elapsed < 10) {
+            loadingStatus.textContent = 'Downloading road network...';
+        } else if (elapsed < 20) {
+            loadingStatus.textContent = 'Building road graph...';
+            loadingDetail.textContent = 'Almost there...';
+        } else if (elapsed < 30) {
+            loadingStatus.textContent = 'Calculating safety scores...';
+        } else {
+            loadingStatus.textContent = 'Finding safest path...';
+            loadingDetail.textContent = 'This is taking longer than expected';
+        }
+    }, 2000);
+    
+    try {
+        const response = await fetch('/api/safest-route', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                origin: originCoords,
+                destination: destinationCoords
+            })
+        });
+        
+        clearInterval(statusInterval);
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            displayRoute(data);
+        } else {
+            showError(data.message || 'Failed to calculate route');
+        }
+    } catch (error) {
+        clearInterval(statusInterval);
+        showError('Network error: ' + error.message);
+    } finally {
+        loadingIndicator.classList.add('d-none');
+    }
+}
+
+// Display route on map
+function displayRoute(data) {
+    // Remove existing route
+    if (routePolyline) {
+        map.removeLayer(routePolyline);
+    }
+    
+    // Convert [lon, lat] to [lat, lon] for Leaflet
+    const latLngs = data.route.coordinates.map(c => [c[1], c[0]]);
+    
+    // Draw route
+    routePolyline = L.polyline(latLngs, {
+        color: '#00ff00',
+        weight: 5,
+        opacity: 0.7,
+        smoothFactor: 1
+    }).addTo(map);
+    
+    // Fit map to route bounds
+    map.fitBounds(routePolyline.getBounds(), { padding: [50, 50] });
+    
+    // Update route info
+    document.getElementById('waypointCount').textContent = data.num_nodes;
+    document.getElementById('routeInfo').classList.remove('d-none');
+    
+    // Show success message
+    if (destinationMarker) {
+        destinationMarker.bindPopup('<b>Route Calculated!</b><br>Safe route displayed in green').openPopup();
+    }
+}
+
+// Show error message
+function showError(message) {
+    document.getElementById('errorText').textContent = message;
+    document.getElementById('errorMessage').classList.remove('d-none');
+}
+
+// Clear route
+function clearRoute() {
+    if (originMarker) {
+        map.removeLayer(originMarker);
+        originMarker = null;
+    }
+    if (destinationMarker) {
+        map.removeLayer(destinationMarker);
+        destinationMarker = null;
+    }
+    if (routePolyline) {
+        map.removeLayer(routePolyline);
+        routePolyline = null;
+    }
+    
+    originCoords = null;
+    destinationCoords = null;
+    
+    document.getElementById('origin').value = '';
+    document.getElementById('destination').value = '';
+    document.getElementById('routeInfo').classList.add('d-none');
+    document.getElementById('errorMessage').classList.add('d-none');
+}
+
+// Toggle community reports visibility
+let reportsVisible = true;
+function toggleReports() {
+    reportsVisible = !reportsVisible;
+    const btn = document.getElementById('toggleReportsBtn');
+    
+    reportMarkers.forEach(marker => {
+        if (reportsVisible) {
+            map.addLayer(marker);
+        } else {
+            map.removeLayer(marker);
+        }
+    });
+    
+    if (reportsVisible) {
+        btn.innerHTML = '<i class="fas fa-eye me-2"></i>Hide Community Reports';
+        btn.classList.remove('btn-outline-secondary');
+        btn.classList.add('btn-outline-info');
+    } else {
+        btn.innerHTML = '<i class="fas fa-eye-slash me-2"></i>Show Community Reports';
+        btn.classList.remove('btn-outline-info');
+        btn.classList.add('btn-outline-secondary');
+    }
+}
+
+// Form handlers
+document.getElementById('routeForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    calculateRoute();
+});
+
+document.getElementById('clearBtn').addEventListener('click', clearRoute);
+</script>
+
+{% endblock %}

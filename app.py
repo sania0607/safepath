@@ -3,6 +3,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from database import Database
 import os
 from dotenv import load_dotenv
+from safety_model import SafetyModel
+from osmnx_routing import build_graph_for_bbox, annotate_graph_with_safety, safest_route_on_graph
+import pickle
 
 # Load environment variables
 load_dotenv()
@@ -12,6 +15,76 @@ app.secret_key = os.getenv('SECRET_KEY', 'your-secret-key-change-this-in-product
 
 # Initialize database
 db = Database()
+
+# Global variables for routing
+safety_model = None
+road_graph = None
+graph_bounds = None
+
+
+def init_safety_model():
+    """Initialize the safety model (lazy load)."""
+    global safety_model
+    if safety_model is None:
+        csv_path = os.environ.get("SAFEPATH_CSV", "merged_feature_data.csv")
+        safety_model = SafetyModel(csv_path)
+        safety_model.compute_scores()
+        print(f"✓ Safety model loaded from {csv_path}")
+    return safety_model
+
+
+def init_road_graph(north, south, east, west, force_reload=False):
+    """Initialize or reload the road graph for a bounding box."""
+    global road_graph, graph_bounds
+    
+    # Try to load from cache first
+    cache_file = "cached_road_graph.pkl"
+    if not force_reload and road_graph is None and os.path.exists(cache_file):
+        try:
+            print("Loading cached road graph...")
+            with open(cache_file, 'rb') as f:
+                cache_data = pickle.load(f)
+                road_graph = cache_data['graph']
+                graph_bounds = cache_data['bounds']
+            print(f"✓ Loaded cached graph: {len(road_graph.nodes)} nodes, {len(road_graph.edges)} edges")
+            return road_graph
+        except Exception as e:
+            print(f"Warning: Could not load cache ({e}), will download fresh")
+    
+    # Check if we can reuse cached graph
+    if not force_reload and road_graph is not None and graph_bounds is not None:
+        gn, gs, ge, gw = graph_bounds
+        # More lenient bbox check - reuse if overlaps significantly
+        if (north <= gn + 0.01 and south >= gs - 0.01 and 
+            east <= ge + 0.01 and west >= gw - 0.01):
+            print("✓ Reusing cached road graph")
+            return road_graph
+    
+    # Use smaller bbox for faster download (reduce by 50%)
+    lat_center = (north + south) / 2
+    lon_center = (east + west) / 2
+    lat_range = (north - south) * 0.5  # Reduce to 50% of requested
+    lon_range = (east - west) * 0.5
+    
+    north_reduced = lat_center + lat_range / 2
+    south_reduced = lat_center - lat_range / 2
+    east_reduced = lon_center + lon_range / 2
+    west_reduced = lon_center - lon_range / 2
+    
+    # Download smaller graph for faster response
+    print(f"Downloading road graph (optimized area)...")
+    G = build_graph_for_bbox(north_reduced, south_reduced, east_reduced, west_reduced)
+    print(f"✓ Downloaded {len(G.nodes)} nodes, {len(G.edges)} edges")
+    
+    sm = init_safety_model()
+    print("Annotating graph with safety scores...")
+    G = annotate_graph_with_safety(G, sm)
+    print("✓ Graph annotated with safety scores")
+    
+    road_graph = G
+    # Store original bounds for better reuse
+    graph_bounds = (north, south, east, west)
+    return road_graph
 
 def init_database():
     """Initialize database connection and create tables"""
@@ -46,17 +119,22 @@ def index():
 
 @app.route('/home')
 def home():
-    """Home page - only accessible after login"""
+    """Redirect to safe-routes page (home is deprecated)"""
+    return redirect(url_for('safe_routes'))
+
+@app.route('/safe-routes')
+def safe_routes():
+    """Safe routes page with interactive map and community reports"""
     if 'username' not in session:
         flash('Please log in to access this page.', 'error')
         return redirect(url_for('login'))
     
-    # Get user details from database
-    user = db.get_user(session['username'])
+    # Get all community reports to display on map
+    reports = db.get_all_reports()
     
-    return render_template('home.html', 
-                         username=session['username'], 
-                         user=user)
+    return render_template('safe_routes.html', 
+                         username=session['username'],
+                         reports=reports)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -76,7 +154,7 @@ def login():
             db.update_last_login(username)
             
             flash('Login successful!', 'success')
-            return redirect(url_for('home'))
+            return redirect(url_for('safe_routes'))
         else:
             flash('Invalid username or password!', 'error')
     
@@ -131,41 +209,113 @@ def community_reports():
     
     # If no reports in database, add some sample data
     if not reports:
-        # Add sample reports
+        # Add sample reports for Delhi area
         sample_reports = [
             {
                 'type': 'scam',
-                'title': 'Fake QR Code Payment Scam',
-                'description': 'Someone put fake QR codes over real ones at the tea stall near Sec 16 metro. Lost ₹500 before realizing.',
-                'location': 'Greater Noida Sector 16',
+                'title': 'ATM Card Skimming Alert',
+                'description': 'Suspicious device found attached to ATM at Connaught Place. Be careful while using ATMs in this area.',
+                'location': 'Connaught Place, Delhi',
                 'severity': 'high',
                 'time_of_day': 'afternoon',
                 'is_anonymous': True
             },
             {
                 'type': 'harassment',
-                'title': 'Street Harassment Incident',
-                'description': 'Group of men making inappropriate comments near the mall entrance. Felt very unsafe walking alone.',
-                'location': 'Alpha Commercial Belt',
-                'severity': 'medium',
+                'title': 'Eve Teasing Incident',
+                'description': 'Women being harassed by group of men near the bus stop. Multiple complaints from commuters.',
+                'location': 'Nehru Place, Delhi',
+                'severity': 'high',
                 'time_of_day': 'evening',
                 'is_anonymous': False
             },
             {
-                'type': 'lighting',
-                'title': 'Very Poor Street Lighting',
-                'description': 'Street lights have been broken for weeks. The entire stretch is very dark after 8 PM.',
-                'location': 'Greater Noida Sector 22',
+                'type': 'scam',
+                'title': 'Fake Job Offer Scam',
+                'description': 'Scammers operating near placement consultancy promising government jobs for upfront payment.',
+                'location': 'Laxmi Nagar, Delhi',
                 'severity': 'medium',
+                'time_of_day': 'afternoon',
+                'is_anonymous': True
+            },
+            {
+                'type': 'lighting',
+                'title': 'No Street Lights',
+                'description': 'Complete darkness on the main road after sunset. Multiple chain snatching incidents reported.',
+                'location': 'Dwarka Sector 12, Delhi',
+                'severity': 'high',
                 'time_of_day': 'night',
                 'is_anonymous': False
             },
             {
                 'type': 'infrastructure',
-                'title': 'Dangerous Open Manholes',
-                'description': 'Multiple uncovered manholes on the main road. Very dangerous for pedestrians and two-wheelers.',
-                'location': 'Dadri Road, Greater Noida',
+                'title': 'Broken Footpath',
+                'description': 'Large portion of footpath collapsed. Pedestrians forced to walk on busy road.',
+                'location': 'Rohini Sector 8, Delhi',
+                'severity': 'medium',
+                'time_of_day': 'morning',
+                'is_anonymous': False
+            },
+            {
+                'type': 'scam',
+                'title': 'Pickpocketing Gang Active',
+                'description': 'Organized pickpocket gang targeting passengers near metro station. Lost wallet and phone.',
+                'location': 'Rajiv Chowk Metro, Delhi',
                 'severity': 'high',
+                'time_of_day': 'evening',
+                'is_anonymous': True
+            },
+            {
+                'type': 'harassment',
+                'title': 'Safety Concern for Women',
+                'description': 'Men following and making inappropriate gestures near college gate. Students feeling unsafe.',
+                'location': 'Kamla Nagar, Delhi',
+                'severity': 'high',
+                'time_of_day': 'afternoon',
+                'is_anonymous': False
+            },
+            {
+                'type': 'lighting',
+                'title': 'Poor Visibility at Night',
+                'description': 'Street lights malfunctioning in residential colony. Women afraid to go out after dark.',
+                'location': 'Mayur Vihar Phase 1, Delhi',
+                'severity': 'medium',
+                'time_of_day': 'night',
+                'is_anonymous': False
+            },
+            {
+                'type': 'scam',
+                'title': 'Auto Rickshaw Overcharging',
+                'description': 'Auto drivers refusing meter and demanding 3x fare. Targeting tourists and women traveling alone.',
+                'location': 'Chandni Chowk, Delhi',
+                'severity': 'low',
+                'time_of_day': 'afternoon',
+                'is_anonymous': True
+            },
+            {
+                'type': 'infrastructure',
+                'title': 'Open Drainage Gutter',
+                'description': 'Uncovered drainage running along sidewalk. Foul smell and safety hazard, especially at night.',
+                'location': 'Saket, Delhi',
+                'severity': 'medium',
+                'time_of_day': 'evening',
+                'is_anonymous': False
+            },
+            {
+                'type': 'harassment',
+                'title': 'Stalking Incident',
+                'description': 'Man following women from metro to residential area. Has been seen multiple times.',
+                'location': 'Lajpat Nagar, Delhi',
+                'severity': 'high',
+                'time_of_day': 'night',
+                'is_anonymous': True
+            },
+            {
+                'type': 'scam',
+                'title': 'Fake Medicine Sellers',
+                'description': 'People selling fake Ayurvedic medicines door-to-door. Elderly citizens being targeted.',
+                'location': 'Janakpuri, Delhi',
+                'severity': 'medium',
                 'time_of_day': 'morning',
                 'is_anonymous': False
             }
@@ -290,6 +440,92 @@ def get_nearby_reports():
     except Exception as e:
         print(f"Error fetching nearby reports: {e}")
         return jsonify([]), 500
+
+
+@app.route('/api/safest-route', methods=['POST'])
+def api_safest_route():
+    """Compute the safest route between two coordinates using OSMnx."""
+    try:
+        data = request.get_json()
+        
+        # Parse origin and destination
+        origin = data.get("origin")
+        destination = data.get("destination")
+        
+        if not origin or not destination:
+            return jsonify({"status": "error", "message": "Missing origin or destination"}), 400
+        
+        origin_coords = (float(origin["lon"]), float(origin["lat"]))
+        dest_coords = (float(destination["lon"]), float(destination["lat"]))
+        
+        # Parse bbox (optional; use default if not provided)
+        bbox = data.get("bbox")
+        if bbox:
+            north = float(bbox["north"])
+            south = float(bbox["south"])
+            east = float(bbox["east"])
+            west = float(bbox["west"])
+        else:
+            # Default: use a SMALL bbox around endpoints for faster download
+            lats = [origin_coords[1], dest_coords[1]]
+            lons = [origin_coords[0], dest_coords[0]]
+            # Reduce padding to 0.02 degrees (~2km) for much faster downloads
+            padding = 0.02  # Changed from 0.05 to 0.02
+            north = max(lats) + padding
+            south = min(lats) - padding
+            east = max(lons) + padding
+            west = min(lons) - padding
+        
+        # Initialize graph (will reuse cached if bbox is covered)
+        G = init_road_graph(north, south, east, west)
+        
+        # Compute safest route
+        path = safest_route_on_graph(G, origin_coords, dest_coords)
+        
+        if not path:
+            return jsonify({
+                "status": "error",
+                "message": "No route found between the given points. They may be disconnected or outside the graph bounds."
+            }), 404
+        
+        # Format response as GeoJSON LineString
+        return jsonify({
+            "status": "success",
+            "route": {
+                "type": "LineString",
+                "coordinates": path  # [[lon, lat], [lon, lat], ...]
+            },
+            "waypoints": path,
+            "num_nodes": len(path)
+        })
+    
+    except Exception as e:
+        print(f"Error computing route: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route('/api/safety-score', methods=['POST'])
+def api_safety_score():
+    """Get the safety score for a specific location."""
+    try:
+        data = request.get_json()
+        lon = float(data.get("lon"))
+        lat = float(data.get("lat"))
+        
+        sm = init_safety_model()
+        score = sm.score_location(lon, lat)
+        
+        return jsonify({
+            "status": "success",
+            "lon": lon,
+            "lat": lat,
+            "safety_score": float(score)
+        })
+    
+    except Exception as e:
+        print(f"Error getting safety score: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 if __name__ == '__main__':
     init_database()

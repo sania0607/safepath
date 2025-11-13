@@ -154,3 +154,11 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+
+# OSMnx cache files
+cache/
+*.pkl
+
+# Deprecated/old files
+api.py
+routing.py
