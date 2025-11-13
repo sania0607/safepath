@@ -124,6 +124,37 @@ def safest_route_on_graph(G: nx.MultiDiGraph, origin: Tuple[float, float], desti
     return coords
 
 
+def fastest_route_on_graph(G: nx.MultiDiGraph, origin: Tuple[float, float], destination: Tuple[float, float]) -> List[Tuple[float, float]]:
+    """Compute fastest (shortest distance) route on an OSMnx graph between two lon/lat points.
+
+    origin and destination are (lon, lat). Returns a list of (lon, lat) nodes.
+    Uses 'length' weight for shortest physical distance.
+    """
+    # Find nearest node
+    try:
+        orig_node = ox.distance.nearest_nodes(G, origin[0], origin[1])
+        dest_node = ox.distance.nearest_nodes(G, destination[0], destination[1])
+    except Exception:
+        # Fallback: attempt older API
+        orig_node = ox.nearest_nodes(G, origin[0], origin[1])
+        dest_node = ox.nearest_nodes(G, destination[0], destination[1])
+
+    try:
+        # Use 'length' weight for shortest distance (fastest route)
+        path = nx.shortest_path(G, source=orig_node, target=dest_node, weight="length")
+    except nx.NetworkXNoPath:
+        return []
+
+    # Return list of lon/lat coordinates for path
+    coords = []
+    for n in path:
+        node = G.nodes[n]
+        lon = node.get("x") if node.get("x") is not None else node.get("lon")
+        lat = node.get("y") if node.get("y") is not None else node.get("lat")
+        coords.append((float(lon), float(lat)))
+    return coords
+
+
 if __name__ == "__main__":
     # Demo: build graph for a SMALL area around the center of merged_feature_data.csv
     # to avoid long download times. For production, cache the full graph.

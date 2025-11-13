@@ -4,7 +4,7 @@ from database import Database
 import os
 from dotenv import load_dotenv
 from safety_model import SafetyModel
-from osmnx_routing import build_graph_for_bbox, annotate_graph_with_safety, safest_route_on_graph
+from osmnx_routing import build_graph_for_bbox, annotate_graph_with_safety, safest_route_on_graph, fastest_route_on_graph
 import pickle
 
 # Load environment variables
@@ -479,24 +479,29 @@ def api_safest_route():
         # Initialize graph (will reuse cached if bbox is covered)
         G = init_road_graph(north, south, east, west)
         
-        # Compute safest route
-        path = safest_route_on_graph(G, origin_coords, dest_coords)
+        # Compute both safest and fastest routes
+        safest_path = safest_route_on_graph(G, origin_coords, dest_coords)
+        fastest_path = fastest_route_on_graph(G, origin_coords, dest_coords)
         
-        if not path:
+        if not safest_path or not fastest_path:
             return jsonify({
                 "status": "error",
                 "message": "No route found between the given points. They may be disconnected or outside the graph bounds."
             }), 404
         
-        # Format response as GeoJSON LineString
+        # Format response with both routes as GeoJSON LineStrings
         return jsonify({
             "status": "success",
-            "route": {
+            "safest_route": {
                 "type": "LineString",
-                "coordinates": path  # [[lon, lat], [lon, lat], ...]
+                "coordinates": safest_path  # [[lon, lat], [lon, lat], ...]
             },
-            "waypoints": path,
-            "num_nodes": len(path)
+            "fastest_route": {
+                "type": "LineString",
+                "coordinates": fastest_path  # [[lon, lat], [lon, lat], ...]
+            },
+            "waypoints": safest_path,  # For backward compatibility
+            "num_nodes": len(safest_path)
         })
     
     except Exception as e:
