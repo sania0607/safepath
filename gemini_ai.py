@@ -40,8 +40,8 @@ def analyze_safety_report(title, description, report_type=None):
         return fallback_analysis(title, description, report_type)
     
     try:
-        # Create the model (using Gemini 2.5 Flash - latest and fastest!)
-        model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        # Create the model (using Gemini 2.5 Flash)
+        model = genai.GenerativeModel('gemini-2.5-flash')
         
         # Create the prompt
         prompt = f"""
@@ -91,7 +91,7 @@ Focus on:
             
             # Add metadata
             analysis['ai_powered'] = True
-            analysis['model'] = 'gemini-2.0-flash-exp'
+            analysis['model'] = 'gemini-2.5-flash'
             
             return analysis
             
@@ -101,7 +101,7 @@ Focus on:
                 'severity': extract_severity_from_text(response.text),
                 'summary': response.text[:200],
                 'ai_powered': True,
-                'model': 'gemini-2.0-flash-exp',
+                'model': 'gemini-2.5-flash',
                 'note': 'Partial AI analysis (JSON parsing failed)'
             }
     
@@ -208,7 +208,7 @@ def generate_route_safety_insight(route_data):
         return None
     
     try:
-        model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        model = genai.GenerativeModel('gemini-2.5-flash')
         
         prompt = f"""
 As a safety advisor for SafePath, provide a brief (2-3 sentences) safety insight about this route:
