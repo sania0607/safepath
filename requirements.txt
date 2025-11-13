@@ -8,3 +8,4 @@ tabulate
 networkx
 numpy
 osmnx
+google-generativeai

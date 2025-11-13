@@ -11,7 +11,7 @@
 
 # 🛡️ SafePath - AI-Enhanced Safety Navigation
 
-**SafePath** is an intelligent, data-driven safety navigation platform that leverages **machine learning-ready architecture** and **geospatial AI algorithms** to provide women in Delhi with the safest routes. Combining real infrastructure data with community-powered insights, SafePath redefines urban navigation with safety as the primary focus.
+**SafePath** is an intelligent, data-driven safety navigation platform that leverages **Google's Gemini AI** and **geospatial AI algorithms** to provide women in Delhi with the safest routes. Combining real infrastructure data with AI-powered community insights, SafePath redefines urban navigation with safety as the primary focus.
 
 ## 🤖 AI/ML Features
 
@@ -23,14 +23,22 @@
 - **Predictive Safety Scoring**: Data-driven model using 13 safety features
 - **Real-time Route Analysis**: Automated safety assessment along calculated paths
 
+### 🤖 **Gemini AI-Powered Report Analysis** ⭐ NEW!
+- **Google Gemini LLM Integration**: Uses Google's state-of-the-art language model for intelligent content analysis
+- **Automatic Severity Detection**: AI analyzes report descriptions to auto-categorize severity (low/medium/high)
+- **Sentiment Analysis**: Detects emotional tone (fearful, concerned, informative) from user reports
+- **Smart Categorization**: Automatically classifies incidents (harassment, theft, lighting, infrastructure, etc.)
+- **Safety Concern Extraction**: Identifies specific safety issues from natural language descriptions
+- **Recommendation Engine**: Suggests actionable steps based on incident analysis
+
 ### 📊 **Data-Driven Safety Model**
 - **Multi-Factor Analysis**: Weighted algorithm analyzing:
   - Street lighting density (+1.0 weight)
   - Police station proximity (+1.5 weight)  
   - Public transit accessibility (+0.5 weight)
   - Nightlife area patterns (-0.7 weight)
-- **Community Intelligence**: Crowdsourced incident reports with severity classification
-- **Scalable ML Architecture**: Ready for supervised learning integration
+- **Community Intelligence**: Crowdsourced incident reports with AI-powered severity classification
+- **Hybrid Architecture**: Combines rule-based geospatial routing + AI-powered NLP analysis
 
 ## 🌟 Key Features
 

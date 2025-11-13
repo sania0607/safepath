@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from safety_model import SafetyModel
 from osmnx_routing import build_graph_for_bbox, annotate_graph_with_safety, safest_route_on_graph, fastest_route_on_graph
 import pickle
+from gemini_ai import analyze_safety_report, generate_route_safety_insight
 
 # Load environment variables
 load_dotenv()
@@ -360,6 +361,27 @@ def submit_report():
         if not all([report_type, title, description, location, severity]):
             flash('Please fill in all required fields.', 'error')
             return render_template('submit_report.html', username=session.get('username', 'User'))
+        
+        # 🤖 AI-POWERED ANALYSIS - Use Gemini to analyze the report
+        try:
+            ai_analysis = analyze_safety_report(title, description, report_type)
+            
+            # Override severity if AI suggests different (and user didn't explicitly set it)
+            if ai_analysis.get('ai_powered') and ai_analysis.get('severity'):
+                suggested_severity = ai_analysis['severity']
+                # Inform user if AI adjusted severity
+                if suggested_severity != severity and ai_analysis.get('ai_powered'):
+                    flash(f'AI Analysis: Severity adjusted to "{suggested_severity}" based on report content.', 'info')
+                    severity = suggested_severity
+            
+            # Store AI insights in session for display (optional)
+            if ai_analysis.get('ai_powered'):
+                flash(f'✨ AI Insight: {ai_analysis.get("summary", "Report analyzed successfully")}', 'info')
+        
+        except Exception as e:
+            print(f"AI Analysis Error: {str(e)}")
+            # Continue with manual severity if AI fails
+            pass
         
         # Create report in database
         report_id = db.create_report(
